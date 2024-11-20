@@ -1,6 +1,9 @@
 import os
+
 from pathlib import Path
+
 import environ
+
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -8,14 +11,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Initialize environ
 env = environ.Env()
+
 # Explicitly specify .env file location in project root
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = env('SECRET_KEY')
-
 DEBUG = env('DEBUG', default=False)
 
+# Update ALLOWED_HOSTS to include Render's domain
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '.render.com'])
 
 # Application definition
@@ -78,7 +82,8 @@ if DEBUG:
     MIDDLEWARE = [
         'debug_toolbar.middleware.DebugToolbarMiddleware',
     ] + MIDDLEWARE
-    INTERNAL_IPS = ["127.0.0.1", "localhost"]
+
+INTERNAL_IPS = ["127.0.0.1", "localhost"]
 
 ROOT_URLCONF = 'config.urls'
 
@@ -100,21 +105,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database configuration
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+# Database configuration - Updated
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL', ''),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True  # Add this for Render PostgreSQL
+    ) if not DEBUG else {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=env('DATABASE_URL'),
-            conn_max_age=600
-        )
-    }
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -182,12 +185,13 @@ if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.sendgrid.net'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'apikey'
-    EMAIL_HOST_PASSWORD = env('SENDGRID_API_KEY')
-    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = env('SENDGRID_API_KEY')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
 # REST Framework settings
 REST_FRAMEWORK = {

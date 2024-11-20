@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow rounded-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-indigo-50 rounded-lg p-4">
+                <h3 class="text-lg font-medium text-indigo-900">Total Assessments</h3>
+                <p class="text-3xl font-bold text-indigo-600">{{ assessments.count }}</p>
+            </div>
+            <div class="bg-green-50 rounded-lg p-4">
+                <h3 class="text-lg font-medium text-green-900">Completed</h3>
+                <p class="text-3xl font-bold text-green-600">{{ completed_count }}</p>
+            </div>
+            <div class="bg-yellow-50 rounded-lg p-4">
+                <h3 class="text-lg font-medium text-yellow-900">In Progress</h3>
+                <p class="text-3xl font-bold text-yellow-600">{{ in_progress_count }}</p>
+            </div>
+        </div>
+        
+        <!-- Recent Assessments -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Assessments</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for assessment in assessments %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ assessment.title }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                {% if assessment.status == 'completed' %}
+                                    bg-green-100 text-green-800
+                                {% else %}
+                                    bg-yellow-100 text-yellow-800
+                                {% endif %}
+                            ">
+                                {{ assessment.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ assessment.created_at|date:"M j, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            {% if assessment.status == 'completed' %}
+                                <a href="{% url 'roadmap:view' assessment.id %}" class="text-indigo-600 hover:text-indigo-900">View Roadmap</a>
+                            {% else %}
+                                <a href="{% url 'assessment:question' assessment.id 1 %}" class="text-indigo-600 hover:text-indigo-900">Continue</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

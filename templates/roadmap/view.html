@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Your Business Roadmap{% endblock %}
+
+{% block extra_head %}
+<style>
+    @keyframes progressFill {
+        from { width: 0%; }
+        to { width: var(--score); }
+    }
+    .animate-progress {
+        animation: progressFill 1s ease-out forwards;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Your Business Roadmap</h1>
+        <div class="flex space-x-4">
+            <button onclick="window.print()" class="inline-flex items-center py-2 px-4 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print
+            </button>
+            <a href="{% url 'assessment:download_pdf' assessment.id %}" class="inline-flex items-center py-2 px-6 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Download PDF
+            </a>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Assessment Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="text-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <p class="text-sm text-gray-600">Overall Score</p>
+                <p class="text-2xl font-bold text-blue-600">{{ assessment.overall_score }}%</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    {% if assessment.previous_score %}
+                        {% with score_change=assessment.overall_score|subtract:assessment.previous_score %}
+                            {% if score_change > 0 %}
+                                <span class="text-green-500">↑ {{ score_change }}%</span>
+                            {% elif score_change < 0 %}
+                                <span class="text-red-500">↓ {{ score_change|abs }}%</span>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <p class="text-sm text-gray-600">Completed On</p>
+                <p class="text-lg font-medium">{{ assessment.completed_at|date:"M d, Y" }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ assessment.completed_at|time:"g:i A" }}</p>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <p class="text-sm text-gray-600">Categories Evaluated</p>
+                <p class="text-lg font-medium">{{ assessment.categories_count }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ assessment.total_recommendations }} recommendations</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        {% for category in categories %}
+            <div class="bg-white shadow-md rounded-lg p-6" id="category-{{ category.id }}">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-lg font-semibold">{{ category.name }}</h3>
+                    <div class="text-right">
+                        <span class="inline-block px-3 py-1 text-sm rounded-full 
+                            {% if category.score >= 80 %}bg-green-100 text-green-800
+                            {% elif category.score >= 60 %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ category.score }}%
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="h-2 bg-gray-200 rounded overflow-hidden">
+                        <div class="h-2 animate-progress rounded 
+                            {% if category.score >= 80 %}bg-green-500
+                            {% elif category.score >= 60 %}bg-yellow-500
+                            {% else %}bg-red-500{% endif %}"
+                            style="--score: {{ category.score }}%">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    {% for recommendation in category.recommendations %}
+                        <div class="border-l-4 {% if recommendation.priority == 'high' %}border-red-500{% elif recommendation.priority == 'medium' %}border-yellow-500{% else %}border-blue-500{% endif %} pl-4">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-medium mb-2">{{ recommendation.title }}</h4>
+                                {% if recommendation.priority %}
+                                    <span class="text-xs px-2 py-1 rounded-full {% if recommendation.priority == 'high' %}bg-red-100 text-red-800{% elif recommendation.priority == 'medium' %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                        {{ recommendation.priority|title }} Priority
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-gray-600 text-sm">{{ recommendation.description }}</p>
+                            {% if recommendation.action_items %}
+                                <ul class="mt-2 space-y-2 text-sm">
+                                    {% for item in recommendation.action_items %}
+                                        <li class="flex items-start">
+                                            <svg class="w-4 h-4 mr-2 text-blue-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                            <span>{{ item }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                            {% if recommendation.resources %}
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <h5 class="text-sm font-medium mb-2">Helpful Resources:</h5>
+                                    <ul class="space-y-1">
+                                        {% for resource in recommendation.resources %}
+                                            <li>
+                                                <a href="{{ resource.url }}" target="_blank" rel="noopener" 
+                                                   class="text-sm text-blue-600 hover:text-blue-800 inline-flex items-center">
+                                                    {{ resource.title }}
+                                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                                    </svg>
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center py-8 bg-gray-50 rounded-lg">
+                <p class="text-gray-600">No categories available for this assessment.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-8 flex justify-center space-x-4">
+        <a href="{% url 'assessment:retake' %}" class="inline-flex items-center py-2 px-6 border border-blue-500 text-blue-500 rounded hover:bg-blue-50">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Retake Assessment
+        </a>
+        <button onclick="shareRoadmap()" class="inline-flex items-center py-2 px-6 border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            Share Report
+        </button>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function shareRoadmap() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Business Roadmap Assessment',
+                text: 'Check out my business assessment results!',
+                url: window.location.href
+            })
+            .catch(console.error);
+        } else {
+            // Fallback: Copy URL to clipboard
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = window.location.href;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            alert('URL copied to clipboard!');
+        }
+    }
+
+    // Animate progress bars on scroll
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-progress');
+                }
+            });
+        },
+        { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.animate-progress').forEach(
+        (progress) => observer.observe(progress)
+    );
+</script>
+{% endblock %}
+{% endblock %}

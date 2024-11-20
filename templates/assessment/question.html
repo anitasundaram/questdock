@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-3xl font-bold">Question {{ question_number }} of {{ total_questions }}</h1>
+            <span class="text-gray-600">Category: {{ question.category.name }}</span>
+        </div>
+        
+        <!-- Progress bar -->
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-6">
+            <div class="bg-blue-600 h-4 rounded-full transition-all duration-500"
+                 style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+
+    <form method="post" class="bg-white rounded-lg shadow-md p-6">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-4">{{ question.text }}</h2>
+            {% if question.help_text %}
+            <p class="text-gray-600 mb-4">{{ question.help_text }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mb-6">
+            {% if question.question_type == 'scale' %}
+                <div class="flex justify-between items-center">
+                    {% for i in '12345' %}
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="radio" 
+                               name="question_{{ question.id }}" 
+                               value="{{ i }}"
+                               {% if previous_response == i %}checked{% endif %}
+                               class="sr-only peer">
+                        <span class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center peer-checked:bg-blue-600 peer-checked:text-white transition-colors">
+                            {{ i }}
+                        </span>
+                        <span class="mt-2 text-sm text-gray-600">
+                            {% if forloop.first %}Not at all
+                            {% elif forloop.last %}Completely
+                            {% endif %}
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            {% elif question.question_type == 'yes_no' %}
+                <div class="flex space-x-4">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" 
+                               name="question_{{ question.id }}" 
+                               value="true"
+                               {% if previous_response == 'true' %}checked{% endif %}
+                               class="sr-only peer">
+                        <span class="px-6 py-3 rounded-lg bg-gray-200 peer-checked:bg-blue-600 peer-checked:text-white transition-colors">
+                            Yes
+                        </span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" 
+                               name="question_{{ question.id }}" 
+                               value="false"
+                               {% if previous_response == 'false' %}checked{% endif %}
+                               class="sr-only peer">
+                        <span class="px-6 py-3 rounded-lg bg-gray-200 peer-checked:bg-blue-600 peer-checked:text-white transition-colors">
+                            No
+                        </span>
+                    </label>
+                </div>
+            {% elif question.question_type == 'multiple' %}
+                <div class="space-y-4">
+                    {% for option in question.options %}
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" 
+                               name="question_{{ question.id }}" 
+                               value="{{ option.value }}"
+                               {% if previous_response == option.value %}checked{% endif %}
+                               class="sr-only peer">
+                        <span class="px-6 py-3 w-full rounded-lg bg-gray-200 peer-checked:bg-blue-600 peer-checked:text-white transition-colors">
+                            {{ option.text }}
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="flex justify-between items-center">
+            {% if question_number > 1 %}
+            <a href="{% url 'assessment:question' assessment_id=assessment.id question_number=question_number|add:'-1' %}"
+               class="text-blue-600 hover:text-blue-800">
+                ← Previous Question
+            </a>
+            {% else %}
+            <div></div>
+            {% endif %}
+
+            <button type="submit"
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                {% if is_last_question %}
+                    Complete Assessment
+                {% else %}
+                    Next Question →
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

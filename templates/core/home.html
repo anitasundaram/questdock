@@ -1,0 +1,471 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+
+{% block content %}
+{# Hero Section #}
+<div class="relative bg-gradient-to-r from-blue-600 to-blue-800">
+    <div class="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
+                {{ page.hero_title|default:"Grow Your Business with Data-Driven Insights" }}
+            </h1>
+            <p class="mt-6 text-xl text-blue-100">
+                {{ page.hero_subtitle|default:"Get personalized recommendations and actionable strategies based on a comprehensive business assessment." }}
+            </p>
+            <div class="mt-10">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'assessment:start' %}" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 md:py-4 md:text-lg md:px-10">
+                        Start Your Assessment
+                    </a>
+                {% else %}
+                    <a href="{% url 'account_signup' %}" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 md:py-4 md:text-lg md:px-10">
+                        Get Started Free
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% if page.hero_background_image %}
+        {% image page.hero_background_image fill-1920x1080 as hero_img %}
+        <div class="absolute inset-0 z-0 opacity-20">
+            <img src="{{ hero_img.url }}" alt="{{ hero_img.alt }}" class="w-full h-full object-cover">
+        </div>
+    {% endif %}
+</div>
+
+
+{# Key Features Section #}
+<div class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                {{ page.features_title|default:"Powerful Features for Business Growth" }}
+            </h2>
+            <p class="mt-4 text-lg text-gray-500">
+                {{ page.features_subtitle|default:"Everything you need to assess, analyze, and accelerate your business growth" }}
+            </p>
+        </div>
+       
+        <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {% for feature in page.features.all %}
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-md">
+                        {{ feature.icon_html|safe }}
+                    </div>
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">{{ feature.title }}</h3>
+                    <p class="mt-2 text-base text-gray-500">{{ feature.description }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</div>
+<h3 class="mt-8 text-lg font-medium text-gray-900">Complete Assessment</h3>
+<p class="mt-5 text-base text-gray-500">
+    Answer questions about your business across key areas including operations, marketing, finance, and technology.
+</p>
+</div>
+</div>
+</div>
+
+
+<!-- Step 2 -->
+<div class="pt-6">
+<div class="flow-root rounded-lg bg-gray-50 px-6 pb-8">
+<div class="-mt-6">
+<div class="inline-flex items-center justify-center rounded-md bg-blue-600 p-3 shadow-lg">
+    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+</div>
+<h3 class="mt-8 text-lg font-medium text-gray-900">Get Analysis</h3>
+<p class="mt-5 text-base text-gray-500">
+    Receive detailed analysis of your business's strengths and areas for improvement based on industry benchmarks.
+</p>
+</div>
+</div>
+</div>
+
+
+<!-- Step 3 -->
+<div class="pt-6">
+<div class="flow-root rounded-lg bg-gray-50 px-6 pb-8">
+<div class="-mt-6">
+<div class="inline-flex items-center justify-center rounded-md bg-blue-600 p-3 shadow-lg">
+    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+    </svg>
+</div>
+<h3 class="mt-8 text-lg font-medium text-gray-900">Action Plan</h3>
+<p class="mt-5 text-base text-gray-500">
+    Get a personalized roadmap with prioritized recommendations and concrete steps for business growth.
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+{# Testimonials Section #}
+    <div class="bg-gray-50 py-16 sm:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Trusted by Business Leaders</h2>
+            </div>
+            <div class="mt-12">
+                <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                    <!-- Testimonial 1 -->
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="px-6 py-8">
+                            <p class="text-gray-500">
+                                "The assessment helped us identify critical gaps in our operations and provided clear steps to address them."
+                            </p>
+                            <div class="mt-6">
+                                <p class="font-medium text-gray-900">Sarah Johnson</p>
+                                <p class="text-gray-500">CEO, TechStart Inc</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Testimonial 2 -->
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="px-6 py-8">
+                            <p class="text-gray-500">
+                                "Incredibly valuable insights that helped us prioritize our growth initiatives and improve efficiency."
+                            </p>
+                            <div class="mt-6">
+                                <p class="font-medium text-gray-900">Michael Chen</p>
+                                <p class="text-gray-500">Founder, GrowthLabs</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Testimonial 3 -->
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="px-6 py-8">
+                            <p class="text-gray-500">
+                                "The platform's recommendations were spot-on and helped us achieve 40% growth in six months."
+                            </p>
+                            <div class="mt-6">
+                                <p class="font-medium text-gray-900">Emma Davis</p>
+                                <p class="text-gray-500">Director, Retail Solutions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+{# Pricing Section #}
+<div class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                Simple, Transparent Pricing
+            </h2>
+        </div>
+       
+        <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2">
+            <div class="bg-white rounded-lg shadow-lg divide-y divide-gray-200">
+                <div class="p-6">
+                    <h3 class="text-2xl font-medium text-gray-900">Free</h3>
+                    <p class="mt-4 text-sm text-gray-500">Perfect for small businesses just getting started</p>
+                    <p class="mt-8">
+                        <span class="text-4xl font-extrabold text-gray-900">$0</span>
+                        <span class="text-base font-medium text-gray-500">/month</span>
+                    </p>
+                    <a href="{% url 'account_signup' %}" class="mt-8 block w-full bg-blue-600 text-white text-center rounded-md px-4 py-2 hover:bg-blue-700">
+                        Get Started
+                    </a>
+                </div>
+                <div class="px-6 pt-6 pb-8">
+                    <h4 class="text-sm font-medium text-gray-900 tracking-wide">What's included</h4>
+                    <ul class="mt-6 space-y-4">
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">Basic business assessment</span>
+                        </li>
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">General recommendations</span>
+                        </li>
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">PDF report</span>
+                        </li>
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">Email support</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+
+            <div class="bg-white rounded-lg shadow-lg divide-y divide-gray-200">
+                <div class="p-6">
+                    <h3 class="text-2xl font-medium text-gray-900">Premium</h3>
+                    <p class="mt-4 text-sm text-gray-500">For growing businesses seeking detailed insights</p>
+                    <p class="mt-8">
+                        <span class="text-4xl font-extrabold text-gray-900">$49</span>
+                        <span class="text-base font-medium text-gray-500">/month</span>
+                    </p>
+                    <a href="{% url 'account_signup' %}?plan=premium" class="mt-8 block w-full bg-blue-600 text-white text-center rounded-md px-4 py-2 hover:bg-blue-700">
+                        Get Started
+                    </a>
+                </div>
+                <div class="px-6 pt-6 pb-8">
+                    <h4 class="text-sm font-medium text-gray-900 tracking-wide">What's included</h4>
+                    <ul class="mt-6 space-y-4">
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">Advanced assessment modules</span>
+                        </li>
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">Industry-specific benchmarks</span>
+                        </li>
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">Priority recommendations</span>
+                        </li>
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">Quarterly progress reviews</span>
+                        </li>
+                        <li class="flex">
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="ml-3 text-sm text-gray-500">Priority support</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{# FAQ Section #}
+<div class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                {{ page.faq_title|default:"Frequently Asked Questions" }}
+            </h2>
+        </div>
+       
+        <div class="mt-12 max-w-3xl mx-auto">
+            <dl class="space-y-8">
+                {% for faq in page.faqs.all %}
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <dt class="text-lg font-medium text-gray-900">
+                            {{ faq.question }}
+                        </dt>
+                        <dd class="mt-2 text-base text-gray-500">
+                            {{ faq.answer|richtext }}
+                        </dd>
+                    </div>
+                {% empty %}
+                    {# Default FAQs if none are set in Wagtail #}
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <dt class="text-lg font-medium text-gray-900">
+                            How long does the assessment take to complete?
+                        </dt>
+                        <dd class="mt-2 text-base text-gray-500">
+                            The basic assessment typically takes 15-20 minutes to complete. Premium assessments may take 30-45 minutes due to their comprehensive nature.
+                        </dd>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <dt class="text-lg font-medium text-gray-900">
+                            How often should I reassess my business?
+                        </dt>
+                        <dd class="mt-2 text-base text-gray-500">
+                            We recommend quarterly assessments to track progress and adjust strategies. Premium users receive automatic quarterly assessment reminders.
+                        </dd>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <dt class="text-lg font-medium text-gray-900">
+                            What types of businesses can benefit from this assessment?
+                        </dt>
+                        <dd class="mt-2 text-base text-gray-500">
+                            Our assessment is designed for businesses of all sizes across various industries. We customize recommendations based on your specific industry and business size.
+                        </dd>
+                    </div>
+                {% endfor %}
+            </dl>
+        </div>
+    </div>
+</div>
+
+
+{# Call to Action Section #}
+<div class="bg-blue-700">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
+        <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            <span class="block">{{ page.cta_title|default:"Ready to grow your business?" }}</span>
+            <span class="block text-blue-200">{{ page.cta_subtitle|default:"Start your assessment today." }}</span>
+        </h2>
+        <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+            <div class="inline-flex rounded-md shadow">
+                <a href="{% url 'account_signup' %}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50">
+                    Get started
+                </a>
+            </div>
+            <div class="ml-3 inline-flex rounded-md shadow">
+                <a href="#pricing" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Learn more
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{# Footer #}
+<footer class="bg-gray-800">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
+        <div class="xl:grid xl:grid-cols-3 xl:gap-8">
+            <div class="grid grid-cols-2 gap-8 xl:col-span-2">
+                <div class="md:grid md:grid-cols-2 md:gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                            Solutions
+                        </h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Business Assessment
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Growth Strategy
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Performance Tracking
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-12 md:mt-0">
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                            Support
+                        </h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Documentation
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Guides
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    API Status
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="md:grid md:grid-cols-2 md:gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                            Company
+                        </h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    About
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Blog
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Careers
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-12 md:mt-0">
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                            Legal
+                        </h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Privacy
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-300 hover:text-white">
+                                    Terms
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 xl:mt-0">
+                <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                    Subscribe to our newsletter
+                </h3>
+                <p class="mt-4 text-base text-gray-300">
+                    Get the latest news and articles to your inbox every month.
+                </p>
+                <form class="mt-4 sm:flex sm:max-w-md">
+                    <label for="email-address" class="sr-only">Email address</label>
+                    <input type="email" name="email-address" id="email-address" autocomplete="email" required class="appearance-none min-w-0 w-full bg-white border border-transparent rounded-md py-2 px-4 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white focus:border-white focus:placeholder-gray-400" placeholder="Enter your email">
+                    <div class="mt-3 rounded-md sm:mt-0 sm:ml-3 sm:flex-shrink-0">
+                        <button type="submit" class="w-full bg-blue-600 border border-transparent rounded-md py-2 px-4 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500">
+                            Subscribe
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="mt-8 border-t border-gray-700 pt-8 md:flex md:items-center md:justify-between">
+            <div class="flex space-x-6 md:order-2">
+                <a href="#" class="text-gray-400 hover:text-gray-300">
+                    <span class="sr-only">Facebook</span>
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .button { display: inline-block; padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; }
+        .footer { margin-top: 30px; font-size: 0.8em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Business Roadmap Shared with You</h1>
+        
+        {% if message %}
+        <p>Message from sender:</p>
+        <blockquote>{{ message }}</blockquote>
+        {% endif %}
+        
+        <p>A business roadmap has been shared with you. Click the button below to view it:</p>
+        
+        <p>
+            <a href="{{ share_url }}" class="button">View Roadmap</a>
+        </p>
+        
+        <p>Or copy this link:</p>
+        <p>{{ share_url }}</p>
+        
+        <p>This link will expire on {{ expires_at|date:"F j, Y" }}.</p>
+        
+        <div class="footer">
+            <p>This email was sent from QuestDock. If you didn't expect this email, please ignore it.</p>
+        </div>
+    </div>
+</body>
+</html>

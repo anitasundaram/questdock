@@ -109,14 +109,27 @@ if DEBUG:
         }
     }
 else:
+    # Explicit PostgreSQL configuration as fallback
     DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL', 'postgres://default:default@localhost/defaultdb'),
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DATABASE_NAME', default=''),
+            'USER': env('DATABASE_USER', default=''),
+            'PASSWORD': env('DATABASE_PASSWORD', default=''),
+            'HOST': env('DATABASE_HOST', default=''),
+            'PORT': env('DATABASE_PORT', default='5432'),
+        }
+    }
+
+    # Try to use dj_database_url if available
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    if DATABASE_URL:
+        DATABASES['default'] = dj_database_url.config(
+            default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
             ssl_require=True
         )
-    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

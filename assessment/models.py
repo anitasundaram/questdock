@@ -125,6 +125,7 @@ class Assessment(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assessments')
     title = models.CharField(max_length=200)
+    business_name = models.CharField(max_length=200, blank=True, null=True)  # Added field
     description = models.TextField(blank=True)
     categories = models.ManyToManyField(Category)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -16,12 +16,12 @@ def assessment_list(request):
     Display list of user's assessments and option to start a new one
     """
     assessments = Assessment.objects.filter(user=request.user).order_by('-created_at')
-    incomplete_exists = assessments.filter(completed_at__isnull=True).exists()
+    incomplete_exists = assessments.filter(completion_date__isnull=True).exists()
     
     context = {
         'assessments': assessments,
         'incomplete_exists': incomplete_exists,
-        'completed_count': assessments.filter(completed_at__isnull=False).count(),
+        'completed_count': assessments.filter(completion_date__isnull=False).count(),
     }
     return render(request, 'assessment/assessment_list.html', context)
 
@@ -33,7 +33,7 @@ def start_assessment(request):
     # Check for any incomplete assessments
     incomplete_assessment = Assessment.objects.filter(
         user=request.user,
-        completed_at__isnull=True
+        completion_date__isnull=True
     ).first()
     
     if incomplete_assessment:
@@ -66,7 +66,7 @@ def question_view(request, assessment_id, question_number):
     """
     assessment = get_object_or_404(Assessment, id=assessment_id, user=request.user)
     
-    if assessment.completed_at:
+    if assessment.completion_date:
         messages.warning(request, 'This assessment has already been completed.')
         return redirect('roadmap:view', assessment_id=assessment_id)
 
@@ -130,8 +130,8 @@ def assessment_complete(request, assessment_id):
     """
     assessment = get_object_or_404(Assessment, id=assessment_id, user=request.user)
     
-    if not assessment.completed_at:
-        assessment.completed_at = timezone.now()
+    if not assessment.completion_date:
+        assessment.completion_date = timezone.now()
         assessment.scores = calculate_scores(assessment)
         assessment.save()
         
@@ -152,7 +152,7 @@ def download_pdf(request, assessment_id):
     assessment = get_object_or_404(Assessment, id=assessment_id, user=request.user)
     
     # Ensure assessment is complete
-    if not assessment.completed_at:
+    if not assessment.completion_date:
         messages.error(request, 'Assessment must be completed before downloading results.')
         return redirect('assessment:question', assessment_id=assessment_id, question_number=1)
 

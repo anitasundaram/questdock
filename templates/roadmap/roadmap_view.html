@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">{{ title }}</h1>
+        <div class="flex gap-2">
+            <a href="{% url 'roadmap:print' assessment.id %}" class="btn btn-secondary">
+                Print Version
+            </a>
+            <a href="{% url 'roadmap:share' assessment.id %}" class="btn btn-primary">
+                Share Roadmap
+            </a>
+        </div>
+    </div>
+    
+    {% if roadmap.status == 'generated' %}
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold mb-4">{{ roadmap.content.summary }}</h2>
+            
+            {% for section in roadmap.content.sections %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-3">{{ section.title }}</h3>
+                    <div class="prose max-w-none">
+                        {{ section.content|linebreaks }}
+                    </div>
+                    
+                    {% if section.recommendations %}
+                        <ul class="list-disc pl-6 mt-4">
+                            {% for rec in section.recommendations %}
+                                <li class="mb-2">{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            {% if roadmap.content.key_metrics %}
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-3">Key Performance Metrics</h3>
+                    <ul class="list-disc pl-6">
+                        {% for metric in roadmap.content.key_metrics %}
+                            <li class="mb-2">{{ metric }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <p class="text-yellow-700">Your roadmap is being generated. Please check back in a few moments.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

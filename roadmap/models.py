@@ -29,12 +29,30 @@ class RecommendationTemplate(models.Model):
         return f"{self.category.name} - {self.title}"
 
 class Roadmap(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('generating', 'Generating'),
+        ('generated', 'Generated'),
+        ('failed', 'Failed')
+    ]
+    
     assessment = models.OneToOneField('assessment.Assessment', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    recommendations = models.JSONField()
+    recommendations = models.JSONField(null=True, blank=True)  # Made optional
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    generated_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"Roadmap for {self.assessment.user.email}"
+
+    @property
+    def is_ready(self):
+        return self.status == 'generated'
+
+    @property
+    def can_regenerate(self):
+        return self.status in ['failed', 'generated']
 
 class RoadmapShare(models.Model):
     roadmap = models.ForeignKey(Roadmap, on_delete=models.CASCADE, related_name='shares')

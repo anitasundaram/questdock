@@ -16,23 +16,102 @@ from django.contrib.auth.models import User
 
 @login_required
 def roadmap_list(request):
-    # Implement roadmap listing logic
-    pass
+    """
+    Display list of roadmaps for the logged-in user
+    """
+    user_assessments = Assessment.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Check if user has any assessments
+    if not user_assessments.exists():
+        messages.info(request, "To get started, let's create your first business assessment. This will help us generate a personalized roadmap for your business growth.")
+        return render(request, 'roadmap/roadmap_list.html', {
+            'roadmaps': [],
+            'title': 'Your Business Roadmaps',
+            'show_start_assessment': True
+        })
+    
+    roadmaps = []
+    for assessment in user_assessments:
+        roadmap, _ = Roadmap.objects.get_or_create(
+            assessment=assessment
+        )
+        roadmaps.append(roadmap)
+    
+    return render(request, 'roadmap/roadmap_list.html', {
+        'roadmaps': roadmaps,
+        'title': 'Your Business Roadmaps',
+        'show_start_assessment': False
+    })
 
 @login_required
 def roadmap_view(request, assessment_id):
-    # Implement roadmap view logic
-    pass
+    """
+    Display individual roadmap based on assessment
+    """
+    assessment = get_object_or_404(Assessment, id=assessment_id, user=request.user)
+    roadmap, created = Roadmap.objects.get_or_create(assessment=assessment)
+    
+    # Handle regenerate request
+    if request.method == 'POST' and 'regenerate' in request.POST:
+        roadmap.status = 'pending'
+        roadmap.save()
+        created = True  # Force regeneration
+    
+    if created or roadmap.status == 'pending':
+        try:
+            roadmap.status = 'generating'
+            roadmap.save()
+            
+            roadmap_data = generate_ai_roadmap(assessment)
+            roadmap.recommendations = roadmap_data
+            roadmap.status = 'generated'
+            roadmap.generated_at = timezone.now()
+            roadmap.error_message = None
+            roadmap.save()
+            
+            messages.success(request, "Your business roadmap has been generated successfully!")
+        except Exception as e:
+            roadmap.status = 'failed'
+            roadmap.error_message = str(e)
+            roadmap.save()
+            messages.error(request, 'We encountered an issue while generating your roadmap. Please try again later.')
+            return redirect('roadmap:list')
+    
+    return render(request, 'roadmap/roadmap_view.html', {
+        'roadmap': roadmap,
+        'assessment': assessment,
+        'title': f'Business Roadmap - {assessment.business_name}'
+    })
 
 @login_required
 def roadmap_print(request, assessment_id):
-    # Implement roadmap print logic
-    pass
+    """
+    Generate printable version of roadmap
+    """
+    assessment = get_object_or_404(Assessment, id=assessment_id, user=request.user)
+    roadmap = get_object_or_404(Roadmap, assessment=assessment)
+    
+    if not roadmap.is_ready:
+        messages.error(request, "Please wait for your roadmap to be generated before printing.")
+        return redirect('roadmap:view', assessment_id=assessment_id)
+    
+    return render(request, 'roadmap/roadmap_print.html', {
+        'roadmap': roadmap,
+        'assessment': assessment,
+        'title': f'Business Roadmap - {assessment.business_name} (Print Version)'
+    })
 
 @login_required
 def roadmap_share(request, assessment_id):
+    """
+    Share roadmap via email or generate shareable link
+    """
     assessment = get_object_or_404(Assessment, id=assessment_id, user=request.user)
     roadmap = get_object_or_404(Roadmap, assessment=assessment)
+    
+    if not roadmap.is_ready:
+        messages.error(request, "Please wait for your roadmap to be generated before sharing.")
+        return redirect('roadmap:view', assessment_id=assessment_id)
     
     if request.method == 'POST':
         # Email sharing
@@ -40,7 +119,6 @@ def roadmap_share(request, assessment_id):
             recipient_email = request.POST.get('email')
             message = request.POST.get('message', '')
             
-            # Create a shareable link
             share = RoadmapShare.objects.create(
                 roadmap=roadmap,
                 created_by=request.user,
@@ -52,12 +130,12 @@ def roadmap_share(request, assessment_id):
                 reverse('roadmap:shared', args=[share.share_token])
             )
             
-            # Prepare email content
             context = {
                 'roadmap': roadmap,
                 'message': message,
                 'share_url': share_url,
                 'expires_at': share.expires_at,
+                'sender_name': request.user.get_full_name() or request.user.email,
             }
             
             html_message = render_to_string('roadmap/email/share.html', context)
@@ -65,16 +143,16 @@ def roadmap_share(request, assessment_id):
             
             try:
                 send_mail(
-                    subject='Business Roadmap Shared with You',
+                    subject=f'Business Roadmap Shared by {context["sender_name"]}',
                     message=plain_message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[recipient_email],
                     html_message=html_message
                 )
-                messages.success(request, f'Roadmap has been shared with {recipient_email}')
+                messages.success(request, f'Your roadmap has been shared with {recipient_email}')
                 return redirect('roadmap:view', assessment_id=assessment_id)
             except Exception as e:
-                messages.error(request, 'Failed to send email. Please try again later.')
+                messages.error(request, 'We encountered an issue sending the email. Please try again later.')
         
         # Link generation
         elif 'generate_link' in request.POST:
@@ -101,14 +179,19 @@ def roadmap_share(request, assessment_id):
     })
 
 def shared_roadmap(request, share_token):
-    """View for accessing a shared roadmap"""
+    """
+    View for accessing a shared roadmap
+    """
     share = get_object_or_404(RoadmapShare, share_token=share_token)
     
     if share.is_expired:
-        messages.error(request, 'This shared link has expired.')
+        messages.error(request, 'This shared link has expired. Please request a new link from the sender.')
         return redirect('home')
     
-    # Update access count and last accessed
+    if not share.roadmap.is_ready:
+        messages.error(request, 'This roadmap is still being generated. Please try again later.')
+        return redirect('home')
+    
     share.access_count += 1
     share.last_accessed = timezone.now()
     share.save()
@@ -117,3 +200,38 @@ def shared_roadmap(request, share_token):
         'roadmap': share.roadmap,
         'share': share,
     })
+
+def generate_ai_roadmap(assessment):
+    """
+    Generate AI-based roadmap using assessment data
+    This is a placeholder function - implement your ML logic here
+    """
+    roadmap_data = {
+        'summary': f"Strategic Roadmap for {assessment.business_name}",
+        'sections': [
+            {
+                'title': 'Current State Analysis',
+                'content': 'Based on your assessment...',
+                'recommendations': []
+            },
+            {
+                'title': 'Short-term Goals (0-6 months)',
+                'content': 'Priority actions...',
+                'recommendations': []
+            },
+            {
+                'title': 'Medium-term Strategy (6-18 months)',
+                'content': 'Strategic initiatives...',
+                'recommendations': []
+            },
+            {
+                'title': 'Long-term Vision (18+ months)',
+                'content': 'Future state...',
+                'recommendations': []
+            }
+        ],
+        'key_metrics': [],
+        'implementation_timeline': []
+    }
+    
+    return roadmap_data

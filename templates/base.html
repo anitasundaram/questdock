@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}QuestDock{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-gray-50">
+<body class="bg-gray-50">
     <nav class="bg-white shadow">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
@@ -15,37 +14,44 @@
                     <div class="flex-shrink-0 flex items-center">
                         <a href="/" class="text-2xl font-bold text-indigo-600">QuestDock</a>
                     </div>
+
                     <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="{% url 'assessment:list' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">Assessments</a>
-                        <a href="{% url 'roadmap:list' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">Roadmaps</a>
+                        <a href="{% url 'assessment:list' %}" 
+                           class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                            Assessments
+                        </a>
+                        <a href="{% url 'roadmap:list' %}" 
+                           class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                            Roadmaps
+                        </a>
                     </div>
                 </div>
+
                 <div class="flex items-center">
                     {% if user.is_authenticated %}
-                        <div class="relative ml-3">
-                            <div>
-                                <button type="button" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
-                                    {{ user.email }}
-                                </button>
-                            </div>
-                        </div>
-                        <a href="{% url 'account_logout' %}" class="ml-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                            Sign Out
-                        </a>
+                    <div class="relative ml-3">
+                        <div>{{ user.email }}</div>
+                    </div>
+                    <a href="{% url 'account_logout' %}" 
+                       class="ml-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        Sign Out
+                    </a>
                     {% else %}
-                        <a href="{% url 'account_login' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50">
-                            Sign In
-                        </a>
-                        <a href="{% url 'account_signup' %}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                            Sign Up
-                        </a>
+                    <a href="{% url 'account_login' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50">
+                        Sign In
+                    </a>
+                    <a href="{% url 'account_signup' %}" 
+                       class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        Sign Up
+                    </a>
                     {% endif %}
                 </div>
             </div>
         </div>
     </nav>
 
-    <main>
+    <main role="main">
         {% if messages %}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
             {% for message in messages %}
@@ -53,20 +59,16 @@
                 <div class="flex">
                     <div class="flex-shrink-0">
                         {% if message.tags == 'error' %}
-                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg class="h-5 w-5 text-red-400" viewbox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                         </svg>
                         {% else %}
-                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg class="h-5 w-5 text-green-400" viewbox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
                         {% endif %}
                     </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium {% if message.tags == 'error' %}text-red-800{% else %}text-green-800{% endif %}">
-                            {{ message }}
-                        </p>
-                    </div>
+                    <div class="ml-3">{{ message }}</div>
                 </div>
             </div>
             {% endfor %}
@@ -76,10 +78,10 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-white mt-12">
+    <footer>
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8">
             <div class="mt-8 md:mt-0">
-                <p class="text-center text-base text-gray-400">&copy; 2024 QuestDock. All rights reserved.</p>
+                © 2024 QuestDock. All rights reserved.
             </div>
         </div>
     </footer>

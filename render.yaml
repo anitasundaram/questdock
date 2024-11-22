@@ -1,6 +1,6 @@
 services:
 - type: web
-  name: your-django-project
+  name: questdock
   env: python
   buildCommand: ./build.sh
-  startCommand: gunicorn yourproject.wsgi:application
+  startCommand: gunicorn config.wsgi:application

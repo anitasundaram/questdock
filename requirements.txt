@@ -1,11 +1,11 @@
 # Core Django
-Django==4.2.9
-wagtail==5.2.1
+Django>=5.0.1
+wagtail>=5.2.2
 djangorestframework==3.14.0
 django-environ==0.11.2
 django-allauth==0.57.0
-django-cors-headers==4.3.0
-django-tailwind>=3.4.0
+django-cors-headers==4.3.1
+django-tailwind>=3.6.0
 
 # Database
 psycopg2-binary==2.9.9
@@ -16,16 +16,22 @@ celery==5.3.6
 redis==5.0.1
 
 # ML and Data Processing
-scikit-learn==1.3.2
-numpy>=1.24.3
-pandas>=2.0.2
+scikit-learn==1.4.0
+numpy>=1.26.3
+pandas>=2.2.0
+torch>=2.5.1  # Updated PyTorch
+torchvision>=0.16.2  # Updated for compatibility
 
 # PDF Generation
 weasyprint==60.1
 
 # Server and Deployment
-gunicorn==21.2.0
-whitenoise==6.5.0
+gunicorn==21.2.0  # WSGI HTTP Server
+uwsgi==2.0.23  # Alternative WSGI server
+whitenoise==6.6.0
+
+# Production and Deployment
+django-health-check==3.17.0  # Health monitoring
 
 # Development Tools
 django-debug-toolbar==4.2.0
@@ -33,3 +39,6 @@ django-extensions==3.2.3
 
 # Security
 python-dotenv==1.0.0
+
+# Logging
+structlog==24.1.0  # Structured logging

@@ -2,21 +2,28 @@ import os
 from pathlib import Path
 import environ
 import dj_database_url
+import structlog
+import logging.config
+import torch
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Initialize environ
-env = environ.Env()
+env = environ.Env(
+    DEBUG=(bool, False),
+    ALLOWED_HOSTS=(list, ['localhost', '127.0.0.1', '.render.com']),
+    DATABASE_URL=(str, None),
+)
 # Explicitly specify .env file location in project root
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = env('DEBUG', default=False)
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '.render.com'])
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
 # Application definition
 INSTALLED_APPS = [
@@ -40,16 +47,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    
+    # Third party apps
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'rest_framework',
     'corsheaders',
-    'core',
-    'assessment',
-    'roadmap',
     'tailwind',
     'theme',  # your tailwind theme app
+    
+    # Local apps
+    'core.apps.CoreConfig',
+    'assessment.apps.AssessmentConfig',
+    'roadmap.apps.RoadmapConfig',
 ]
 
 # Add development apps if in debug mode
@@ -75,9 +86,7 @@ MIDDLEWARE = [
 
 # Add debug toolbar middleware if in debug mode
 if DEBUG:
-    MIDDLEWARE = [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    ] + MIDDLEWARE
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
     INTERNAL_IPS = ["127.0.0.1", "localhost"]
 
 ROOT_URLCONF = 'config.urls'
@@ -109,27 +118,14 @@ if DEBUG:
         }
     }
 else:
-    # Explicit PostgreSQL configuration as fallback
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': env('DATABASE_NAME', default=''),
-            'USER': env('DATABASE_USER', default=''),
-            'PASSWORD': env('DATABASE_PASSWORD', default=''),
-            'HOST': env('DATABASE_HOST', default=''),
-            'PORT': env('DATABASE_PORT', default='5432'),
-        }
-    }
-
-    # Try to use dj_database_url if available
-    DATABASE_URL = os.getenv('DATABASE_URL')
-    if DATABASE_URL:
-        DATABASES['default'] = dj_database_url.config(
-            default=DATABASE_URL,
+        'default': dj_database_url.config(
+            default=env('DATABASE_URL'),
             conn_max_age=600,
             conn_health_checks=True,
             ssl_require=True
         )
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -138,6 +134,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -151,7 +150,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
@@ -160,7 +158,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Updated storage settings for Django 5.0+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Media files
 MEDIA_URL = '/media/'
@@ -173,15 +180,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 WAGTAIL_SITE_NAME = 'Business Assessment Platform'
 WAGTAILADMIN_BASE_URL = env('WAGTAILADMIN_BASE_URL', default='http://localhost:8000')
 
+# PyTorch settings
+TORCH_DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+TORCH_DTYPE = torch.float32
+TORCH_AUTOCAST_ENABLED = True
+
+# ML model settings
+ML_MODELS_DIR = BASE_DIR / 'ml_models'
+
 # Authentication settings
-AUTHENTICATION_BACKENDS = [
+AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
-]
-
-# Tailwind CSS Configuration
-TAILWIND_APP_NAME = 'theme'
-NPM_BIN_PATH = env('NPM_BIN_PATH', default='npm')
+)
 
 # Django-allauth settings
 SITE_ID = 1
@@ -189,8 +200,20 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 LOGIN_REDIRECT_URL = '/assessment/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 7
+
+# Updated rate limiting settings
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/300s',  # 5 failed attempts within 300 seconds (5 minutes)
+}
+
+# Tailwind CSS Configuration
+TAILWIND_APP_NAME = 'theme'
+NPM_BIN_PATH = env('NPM_BIN_PATH', default='npm')
 
 # Email settings
 if DEBUG:
@@ -212,12 +235,14 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     'https://questdock.onrender.com',
-    'http://localhost:8000', 
+    'http://localhost:8000',
     'http://127.0.0.1:8000'
 ])
 CORS_ALLOW_CREDENTIALS = True
@@ -238,17 +263,72 @@ if not DEBUG:
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            '()': structlog.stdlib.ProcessorFormatter,
+            'processor': structlog.processors.JSONRenderer(),
+        },
+        'plain': {
+            '()': structlog.stdlib.ProcessorFormatter,
+            'processor': structlog.dev.ConsoleRenderer(),
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'plain' if DEBUG else 'json',
         },
         'file': {
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'django.log'),
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'json',
+        },
+        'null': {
+            'class': 'logging.NullHandler',
         },
     },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
+    'loggers': {
+        '': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
     },
 }
+
+# Ensure logs directory exists
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+# Configure structlog
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.stdlib.ProcessorFormatter(
+            processor=structlog.processors.JSONRenderer()
+        ),
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+# Setup logging configuration
+logging.config.dictConfig(LOGGING)

@@ -206,9 +206,10 @@ LOGIN_REDIRECT_URL = '/assessment/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 7
 
-# Updated rate limiting settings
+# Updated rate limiting settings - FIXED
 ACCOUNT_RATE_LIMITS = {
-    'login_failed': '5/300s',  # 5 failed attempts within 300 seconds (5 minutes)
+    "login": "5/300",  # 5 attempts within 300 seconds (5 minutes)
+    "login_failed": "5/300",  # 5 failed attempts within 300 seconds
 }
 
 # Tailwind CSS Configuration
